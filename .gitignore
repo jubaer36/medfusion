@@ -1,0 +1,21 @@
+# Large model files
+checkpoints_resnet/resnet_fusion_best.pt
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+
+# Large model checkpoints (keep smaller ones)
+checkpoints_*/
+!checkpoints_*/*.png
+!checkpoints_*/training_history.pt
+
+# But allow some smaller checkpoint files
+!checkpoints_enhanced/wavelet_fusion_spatial_best.pt
+!checkpoints_enhanced/wavelet_fusion_spatial_epoch_*.pt
+!checkpoints_wavelet/wavelet_fusion_best.pt
