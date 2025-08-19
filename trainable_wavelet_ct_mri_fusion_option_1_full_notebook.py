@@ -191,8 +191,13 @@ class VGGPerceptual(nn.Module):
         self.to(device)
 
     def forward(self, x):
-        # grayscale -> 3ch + ImageNet norm
-        x3 = x.repeat(1,3,1,1)
+        # Ensure input is single-channel by averaging across channels if needed,
+        # then convert to 3-channel RGB and apply ImageNet normalization.
+        if x.size(1) != 1:
+            x_gray = x.mean(dim=1, keepdim=True)
+        else:
+            x_gray = x
+        x3 = x_gray.repeat(1, 3, 1, 1)
         mean = torch.tensor([0.485, 0.456, 0.406], device=x.device)[None,:,None,None]
         std  = torch.tensor([0.229, 0.224, 0.225], device=x.device)[None,:,None,None]
         x3 = (x3 - mean) / std
