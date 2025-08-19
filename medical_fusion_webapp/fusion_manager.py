@@ -41,12 +41,12 @@ class FusionManager:
             {
                 'class': WaveletFusion,
                 'path': '../checkpoints_wavelet/wavelet_fusion_best.pt',
-                'key': 'wavelet'
+                'key': 'wavelet_option1'
             },
             {
                 'class': SpatialWaveletFusion,
                 'path': '../checkpoints_enhanced/wavelet_fusion_spatial_best.pt',
-                'key': 'spatial_wavelet'
+                'key': 'wavelet_option2'
             }
         ]
         
@@ -196,12 +196,11 @@ class FusionManager:
             if method in self.fusion_methods and self.fusion_methods[method].is_available:
                 recommended.append(method)
         
-        # Add best deep learning method if available
-        dl_priority = ['resnet', 'spatial_wavelet', 'wavelet']
+        # Add all available deep learning methods
+        dl_priority = ['wavelet_option2', 'wavelet_option1', 'resnet']
         for method in dl_priority:
             if method in self.fusion_methods and self.fusion_methods[method].is_available:
                 recommended.append(method)
-                break
         
         # Add one advanced traditional method
         advanced_methods = ['gradient', 'laplacian']

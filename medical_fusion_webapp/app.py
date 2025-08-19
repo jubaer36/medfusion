@@ -150,7 +150,7 @@ def upload_files():
         ct_img = preprocess_image(ct_file)
         mri_img = preprocess_image(mri_file)
         
-        # Get recommended fusion methods
+        # Get recommended fusion methods (now includes all deep learning methods)
         recommended_methods = fusion_manager.get_recommended_methods()
         
         # Perform fusion using all recommended methods

@@ -74,13 +74,33 @@ class ModelBasedFusion(FusionMethod):
             # Handle different checkpoint formats
             if isinstance(checkpoint, dict):
                 if 'model' in checkpoint:
-                    self.model.load_state_dict(checkpoint['model'])
+                    state_dict = checkpoint['model']
                 elif 'model_state_dict' in checkpoint:
-                    self.model.load_state_dict(checkpoint['model_state_dict'])
+                    state_dict = checkpoint['model_state_dict']
                 else:
-                    self.model.load_state_dict(checkpoint)
+                    state_dict = checkpoint
             else:
-                self.model.load_state_dict(checkpoint)
+                state_dict = checkpoint
+            
+            # Handle shape mismatches for wavelet models
+            try:
+                self.model.load_state_dict(state_dict)
+            except RuntimeError as e:
+                if "size mismatch" in str(e):
+                    # Fix parameter shapes for wavelet models
+                    model_state = self.model.state_dict()
+                    for key in ['_a_low', '_a_lh', '_a_hl', '_a_hh']:
+                        if key in state_dict and key in model_state:
+                            saved_param = state_dict[key]
+                            if saved_param.shape != model_state[key].shape:
+                                if saved_param.numel() == 1:
+                                    if len(model_state[key].shape) == 0:
+                                        state_dict[key] = saved_param.squeeze()
+                                    else:
+                                        state_dict[key] = saved_param.reshape(model_state[key].shape)
+                    self.model.load_state_dict(state_dict)
+                else:
+                    raise e
             
             self.model.eval()
             

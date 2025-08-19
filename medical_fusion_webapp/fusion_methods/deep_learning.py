@@ -50,8 +50,8 @@ class WaveletFusion(ModelBasedFusion):
     
     def __init__(self, model_path: str, device: torch.device):
         super().__init__(
-            name="Wavelet Fusion",
-            description="Trainable wavelet fusion with learnable frequency-band weights",
+            name="Wavelet Fusion (Option 1)",
+            description="Trainable wavelet fusion with learnable global frequency-band weights (α_L=0.857, α_LH=0.838, α_HL=0.500, α_HH=0.500)",
             model_path=model_path,
             device=device
         )
@@ -63,7 +63,7 @@ class WaveletFusion(ModelBasedFusion):
     
     def create_model(self):
         """Create wavelet fusion model."""
-        return WaveletFusionNet()
+        return WaveletFusionNet(wave='haar')  # Match training configuration
     
     def fuse(self, ct: np.ndarray, mri: np.ndarray) -> Optional[np.ndarray]:
         """Fuse images using wavelet model."""
@@ -86,8 +86,8 @@ class SpatialWaveletFusion(ModelBasedFusion):
     
     def __init__(self, model_path: str, device: torch.device):
         super().__init__(
-            name="Spatial-Adaptive Wavelet",
-            description="Advanced wavelet fusion with CNN-based spatial masks for location-aware fusion",
+            name="Spatial-Adaptive Wavelet (Option 2)",
+            description="Advanced wavelet fusion with CNN-based spatial masks for location-aware fusion. Uses enhanced loss function (L1 + SSIM + Gradient).",
             model_path=model_path,
             device=device
         )
@@ -98,8 +98,8 @@ class SpatialWaveletFusion(ModelBasedFusion):
             self.error_message = "pytorch_wavelets package not available"
     
     def create_model(self):
-        """Create spatial wavelet fusion model."""
-        return WaveletFusionNetSpatial()
+        """Create spatial-adaptive wavelet fusion model."""
+        return WaveletFusionNetSpatial(wave='haar')  # Match training configuration
     
     def fuse(self, ct: np.ndarray, mri: np.ndarray) -> Optional[np.ndarray]:
         """Fuse images using spatial-adaptive wavelet model."""
@@ -110,7 +110,7 @@ class SpatialWaveletFusion(ModelBasedFusion):
             with torch.no_grad():
                 ct_tensor = self.prepare_tensor(ct)
                 mri_tensor = self.prepare_tensor(mri)
-                fused_tensor, masks = self.model(ct_tensor, mri_tensor)
+                fused_tensor = self.model(ct_tensor, mri_tensor)
                 return np.clip(self.tensor_to_numpy(fused_tensor), 0, 1)
         except Exception as e:
             print(f"Spatial wavelet fusion error: {e}")

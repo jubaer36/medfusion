@@ -14,6 +14,8 @@ __pycache__/
 checkpoints_*/
 !checkpoints_*/*.png
 !checkpoints_*/training_history.pt
+checkpoints_enhanced/**
+checkpoints_wavelet/**
 
 # But allow some smaller checkpoint files
 !checkpoints_enhanced/wavelet_fusion_spatial_best.pt
