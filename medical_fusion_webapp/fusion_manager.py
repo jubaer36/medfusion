@@ -12,10 +12,7 @@ import numpy as np
 
 from fusion_methods.base import FusionMethod
 from fusion_methods.deep_learning import ResNetFusion, WaveletFusion, SpatialWaveletFusion
-from fusion_methods.traditional import (
-    AverageFusion, MaximumFusion, WeightedFusion, 
-    GradientBasedFusion, LaplacianPyramidFusion
-)
+from fusion_methods.traditional import DWTPCAFusion
 from utils.metrics import evaluate_fusion_comprehensive
 from utils.image_processing import validate_image_pair
 
@@ -57,14 +54,9 @@ class FusionManager:
             except Exception as e:
                 print(f"Failed to initialize {config['key']}: {e}")
         
-        # Traditional methods (always available)
+        # Traditional methods (only DWT-PCA which is implemented in parent directory)
         traditional_methods = [
-            ('average', AverageFusion()),
-            ('maximum', MaximumFusion()),
-            ('weighted_06', WeightedFusion(0.6)),
-            ('weighted_07', WeightedFusion(0.7)),
-            ('gradient', GradientBasedFusion()),
-            ('laplacian', LaplacianPyramidFusion())
+            ('dwt_pca', DWTPCAFusion())
         ]
         
         for key, method in traditional_methods:
@@ -190,23 +182,14 @@ class FusionManager:
         """Get list of recommended methods for comparison."""
         recommended = []
         
-        # Always include basic methods
-        basic_methods = ['average', 'maximum', 'weighted_06']
-        for method in basic_methods:
-            if method in self.fusion_methods and self.fusion_methods[method].is_available:
-                recommended.append(method)
-        
-        # Add all available deep learning methods
+        # Add all available deep learning methods (priority order)
         dl_priority = ['wavelet_option2', 'wavelet_option1', 'resnet']
         for method in dl_priority:
             if method in self.fusion_methods and self.fusion_methods[method].is_available:
                 recommended.append(method)
         
-        # Add one advanced traditional method
-        advanced_methods = ['gradient', 'laplacian']
-        for method in advanced_methods:
-            if method in self.fusion_methods and self.fusion_methods[method].is_available:
-                recommended.append(method)
-                break
+        # Add DWT-PCA method (implemented in parent directory)
+        if 'dwt_pca' in self.fusion_methods and self.fusion_methods['dwt_pca'].is_available:
+            recommended.append('dwt_pca')
         
         return recommended

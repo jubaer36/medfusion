@@ -272,18 +272,4 @@ def get_methods():
         return jsonify({'error': f'Failed to get methods info: {str(e)}'}), 500
 
 if __name__ == '__main__':
-    print("🚀 Starting Medical Image Fusion Web Application...")
-    print(f"📱 Device: {device}")
-    
-    # Display available methods
-    available_methods = fusion_manager.get_available_methods()
-    categories = fusion_manager.get_method_categories()
-    
-    print(f"📊 Available fusion methods: {len(available_methods)}")
-    for category, methods in categories.items():
-        if methods:
-            print(f"  {category}: {len(methods)} methods")
-    
-    print("🌐 Starting Flask server...")
-    print("🔗 Open your browser and go to: http://localhost:5000")
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run(debug=False, host='0.0.0.0', port=5000)

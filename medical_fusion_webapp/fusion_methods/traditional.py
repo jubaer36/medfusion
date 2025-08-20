@@ -6,7 +6,12 @@ Implementation of classical image fusion techniques that don't require training.
 """
 
 import numpy as np
+import cv2
+import pywt
+from sklearn.decomposition import PCA
 from typing import Optional
+import warnings
+warnings.filterwarnings('ignore')
 
 from .base import TraditionalFusion
 
@@ -182,4 +187,163 @@ class LaplacianPyramidFusion(TraditionalFusion):
             return np.clip(fused, 0, 1)
         except Exception as e:
             print(f"Laplacian pyramid fusion error: {e}")
+            return None
+
+
+class DWTPCAFusion(TraditionalFusion):
+    """DWT-PCA based medical image fusion."""
+    
+    def __init__(self):
+        super().__init__(
+            name="DWT-PCA Fusion",
+            description="Discrete Wavelet Transform with Principal Component Analysis fusion method for medical images"
+        )
+        self.wavelet = 'db4'
+        self.mode = 'symmetric'
+    
+    def dwt_decomposition(self, image):
+        """Perform 2-level DWT decomposition."""
+        coeffs1 = pywt.dwt2(image, self.wavelet, mode=self.mode)
+        cA1, (cH1, cV1, cD1) = coeffs1
+        coeffs2 = pywt.dwt2(cA1, self.wavelet, mode=self.mode)
+        cA2, (cH2, cV2, cD2) = coeffs2
+        return {
+            'cA2': cA2,
+            'cH2': cH2, 'cV2': cV2, 'cD2': cD2,
+            'cH1': cH1, 'cV1': cV1, 'cD1': cD1
+        }
+    
+    def principal_component_averaging(self, coeffs1, coeffs2, block_size=8):
+        """Apply PCA-based fusion to wavelet coefficients."""
+        if coeffs1.shape != coeffs2.shape:
+            min_h = min(coeffs1.shape[0], coeffs2.shape[0])
+            min_w = min(coeffs1.shape[1], coeffs2.shape[1])
+            coeffs1 = coeffs1[:min_h, :min_w]
+            coeffs2 = coeffs2[:min_h, :min_w]
+        
+        h, w = coeffs1.shape
+        fused_coeffs = np.zeros_like(coeffs1)
+        
+        for i in range(0, h - block_size + 1, block_size):
+            for j in range(0, w - block_size + 1, block_size):
+                block1 = coeffs1[i:i+block_size, j:j+block_size]
+                block2 = coeffs2[i:i+block_size, j:j+block_size]
+                
+                data = np.column_stack([block1.flatten(), block2.flatten()])
+                
+                try:
+                    pca = PCA(n_components=2)
+                    pca_result = pca.fit_transform(data)
+                    eigenvals = pca.explained_variance_
+                    
+                    if len(eigenvals) >= 2:
+                        w1 = eigenvals[0] / (eigenvals[0] + eigenvals[1])
+                        w2 = eigenvals[1] / (eigenvals[0] + eigenvals[1])
+                    else:
+                        w1, w2 = 0.5, 0.5
+                    
+                    fused_block = w1 * block1 + w2 * block2
+                except:
+                    fused_block = 0.5 * (block1 + block2)
+                
+                fused_coeffs[i:i+block_size, j:j+block_size] = fused_block
+        
+        # Handle remaining blocks
+        if h % block_size != 0 or w % block_size != 0:
+            remaining_h = h - (h // block_size) * block_size
+            remaining_w = w - (w // block_size) * block_size
+            
+            if remaining_h > 0:
+                fused_coeffs[-remaining_h:, :] = 0.5 * (
+                    coeffs1[-remaining_h:, :] + coeffs2[-remaining_h:, :]
+                )
+            if remaining_w > 0:
+                fused_coeffs[:, -remaining_w:] = 0.5 * (
+                    coeffs1[:, -remaining_w:] + coeffs2[:, -remaining_w:]
+                )
+        
+        return fused_coeffs
+    
+    def maximum_selection_fusion(self, coeffs1, coeffs2):
+        """Apply maximum selection rule for detail coefficients."""
+        if coeffs1.shape != coeffs2.shape:
+            min_h = min(coeffs1.shape[0], coeffs2.shape[0])
+            min_w = min(coeffs1.shape[1], coeffs2.shape[1])
+            coeffs1 = coeffs1[:min_h, :min_w]
+            coeffs2 = coeffs2[:min_h, :min_w]
+        
+        mask = np.abs(coeffs1) >= np.abs(coeffs2)
+        fused_coeffs = np.where(mask, coeffs1, coeffs2)
+        return fused_coeffs
+    
+    def fuse(self, ct: np.ndarray, mri: np.ndarray) -> Optional[np.ndarray]:
+        """Fuse images using DWT-PCA method."""
+        try:
+            # Ensure images are in proper format and size
+            if ct.shape != mri.shape:
+                h = min(ct.shape[0], mri.shape[0])
+                w = min(ct.shape[1], mri.shape[1])
+                ct = cv2.resize(ct, (w, h))
+                mri = cv2.resize(mri, (w, h))
+            
+            # Crop to nearest multiple of 4 for both dimensions
+            h, w = ct.shape
+            h4, w4 = h - (h % 4), w - (w % 4)
+            ct = ct[:h4, :w4]
+            mri = mri[:h4, :w4]
+            
+            # Perform DWT decomposition
+            mri_coeffs = self.dwt_decomposition(mri)
+            ct_coeffs = self.dwt_decomposition(ct)
+            
+            # Fuse approximation coefficients using PCA
+            fused_cA2 = self.principal_component_averaging(
+                mri_coeffs['cA2'], ct_coeffs['cA2']
+            )
+            
+            # Fuse detail coefficients using maximum selection
+            fused_cH2 = self.maximum_selection_fusion(
+                mri_coeffs['cH2'], ct_coeffs['cH2']
+            )
+            fused_cV2 = self.maximum_selection_fusion(
+                mri_coeffs['cV2'], ct_coeffs['cV2']
+            )
+            fused_cD2 = self.maximum_selection_fusion(
+                mri_coeffs['cD2'], ct_coeffs['cD2']
+            )
+            
+            fused_cH1 = self.maximum_selection_fusion(
+                mri_coeffs['cH1'], ct_coeffs['cH1']
+            )
+            fused_cV1 = self.maximum_selection_fusion(
+                mri_coeffs['cV1'], ct_coeffs['cV1']
+            )
+            fused_cD1 = self.maximum_selection_fusion(
+                mri_coeffs['cD1'], ct_coeffs['cD1']
+            )
+            
+            # Reconstruct from level 2
+            coeffs_level2 = (fused_cA2, (fused_cH2, fused_cV2, fused_cD2))
+            reconstructed_cA1 = pywt.idwt2(coeffs_level2, self.wavelet, mode=self.mode)
+            
+            # Ensure all level 1 coefficients have the same size
+            target_h, target_w = fused_cH1.shape
+            if reconstructed_cA1.shape != (target_h, target_w):
+                reconstructed_cA1 = cv2.resize(reconstructed_cA1, (target_w, target_h))
+            
+            # Reconstruct final image
+            coeffs_level1 = (reconstructed_cA1, (fused_cH1, fused_cV1, fused_cD1))
+            fused_image = pywt.idwt2(coeffs_level1, self.wavelet, mode=self.mode)
+            fused_image = np.clip(fused_image, 0, 1)
+            
+            # Check for NaN or inf values
+            if np.any(np.isnan(fused_image)) or np.any(np.isinf(fused_image)):
+                print("Warning: Fused image contains NaN or inf values. Using simple averaging fallback.")
+                fused_image = 0.5 * (mri + ct)
+                fused_image = np.clip(fused_image, 0, 1)
+            
+            return fused_image
+            
+        except Exception as e:
+            print(f"DWT-PCA fusion error: {e}")
             return None

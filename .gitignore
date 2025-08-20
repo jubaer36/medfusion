@@ -21,3 +21,18 @@ checkpoints_wavelet/**
 !checkpoints_enhanced/wavelet_fusion_spatial_best.pt
 !checkpoints_enhanced/wavelet_fusion_spatial_epoch_*.pt
 !checkpoints_wavelet/wavelet_fusion_best.pt
+
+# Test and debug files
+test_*.py
+debug_*.py
+*_test.py
+*_debug.py
+
+# Temporary results
+fused_image_result.jpg
+fusion_example.png
+medical_fusion_webapp/static/results/*.png
+medical_fusion_webapp/uploads/*
+
+# VS Code settings
+.vscode/
