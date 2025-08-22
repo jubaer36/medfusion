@@ -2,16 +2,27 @@
 Deep Learning-based Fusion Methods
 ==================================
 
-Implementation of neural network-based fusion methods including ResNet and Wavelet models.
+Implementation of neural network-based fusion methods including ResNet, Wavelet, and FATFusion models.
 """
 
 import numpy as np
 import torch
 from typing import Optional
+import sys
+import os
 
 from .base import ModelBasedFusion
 from models.resnet_fusion import ResNetFusionNet
 from models.wavelet_fusion import WaveletFusionNet, WaveletFusionNetSpatial, WAVELETS_AVAILABLE
+
+# Add FATFusion path to import
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../FATFusion'))
+
+try:
+    from Networks.networks import MODEL as FATFusionModel
+    FATFUSION_AVAILABLE = True
+except ImportError:
+    FATFUSION_AVAILABLE = False
 
 
 class ResNetFusion(ModelBasedFusion):
@@ -114,4 +125,43 @@ class SpatialWaveletFusion(ModelBasedFusion):
                 return np.clip(self.tensor_to_numpy(fused_tensor), 0, 1)
         except Exception as e:
             print(f"Spatial wavelet fusion error: {e}")
+            return None
+
+
+class FATFusion(ModelBasedFusion):
+    """FATFusion: Feature Adaptive Transformer for Medical Image Fusion."""
+    
+    def __init__(self, model_path: str, device: torch.device):
+        super().__init__(
+            name="FATFusion Transformer",
+            description="Feature Adaptive Transformer fusion using Swin Transformer blocks with channel attention for PET-MRI and CT-MRI fusion",
+            model_path=model_path,
+            device=device
+        )
+        
+        # Check if FATFusion is available
+        if not FATFUSION_AVAILABLE:
+            self.is_available = False
+            self.error_message = "FATFusion networks not available"
+    
+    def create_model(self):
+        """Create FATFusion model."""
+        return FATFusionModel(in_channel=1)  # Use default parameters like in Test.py
+    
+    def fuse(self, image1: np.ndarray, image2: np.ndarray) -> Optional[np.ndarray]:
+        """Fuse images using FATFusion model."""
+        if not self.is_available:
+            return None
+        
+        try:
+            with torch.no_grad():
+                # Prepare input tensors
+                image1_tensor = self.prepare_tensor(image1)
+                image2_tensor = self.prepare_tensor(image2)
+                
+                # FATFusion expects two input images
+                fused_tensor = self.model(image1_tensor, image2_tensor)
+                return np.clip(self.tensor_to_numpy(fused_tensor), 0, 1)
+        except Exception as e:
+            print(f"FATFusion error: {e}")
             return None

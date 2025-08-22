@@ -11,7 +11,7 @@ from typing import Dict, List, Any, Optional
 import numpy as np
 
 from fusion_methods.base import FusionMethod
-from fusion_methods.deep_learning import ResNetFusion, WaveletFusion, SpatialWaveletFusion
+from fusion_methods.deep_learning import ResNetFusion, WaveletFusion, SpatialWaveletFusion, FATFusion
 from fusion_methods.traditional import DWTPCAFusion
 from utils.metrics import evaluate_fusion_comprehensive
 from utils.image_processing import validate_image_pair
@@ -33,33 +33,45 @@ class FusionManager:
             {
                 'class': ResNetFusion,
                 'path': '../checkpoints_resnet/resnet_fusion_best.pt',
-                'key': 'resnet'
+                'key': 'resnet',
+                'modalities': ['ct-mri']
             },
             {
                 'class': WaveletFusion,
                 'path': '../checkpoints_wavelet/wavelet_fusion_best.pt',
-                'key': 'wavelet_option1'
+                'key': 'wavelet_option1',
+                'modalities': ['ct-mri']
             },
             {
                 'class': SpatialWaveletFusion,
                 'path': '../checkpoints_enhanced/wavelet_fusion_spatial_best.pt',
-                'key': 'wavelet_option2'
+                'key': 'wavelet_option2',
+                'modalities': ['ct-mri']
+            },
+            {
+                'class': FATFusion,
+                'path': '../FATFusion/FATFusion-model.pth',
+                'key': 'fatfusion',
+                'modalities': ['pet-mri', 'ct-mri']  # FATFusion supports both
             }
         ]
         
         for config in model_configs:
             try:
                 method = config['class'](config['path'], self.device)
+                # Add modality support info
+                method.supported_modalities = config['modalities']
                 self.fusion_methods[config['key']] = method
             except Exception as e:
                 print(f"Failed to initialize {config['key']}: {e}")
         
         # Traditional methods (only DWT-PCA which is implemented in parent directory)
         traditional_methods = [
-            ('dwt_pca', DWTPCAFusion())
+            ('dwt_pca', DWTPCAFusion(), ['ct-mri', 'pet-mri'])
         ]
         
-        for key, method in traditional_methods:
+        for key, method, modalities in traditional_methods:
+            method.supported_modalities = modalities
             self.fusion_methods[key] = method
     
     def get_available_methods(self) -> Dict[str, Dict[str, Any]]:
@@ -178,18 +190,26 @@ class FusionManager:
         
         return categories
     
-    def get_recommended_methods(self) -> List[str]:
-        """Get list of recommended methods for comparison."""
+    def get_recommended_methods(self, modality_type: str = 'ct-mri') -> List[str]:
+        """Get list of recommended methods for comparison based on modality type."""
         recommended = []
         
-        # Add all available deep learning methods (priority order)
-        dl_priority = ['wavelet_option2', 'wavelet_option1', 'resnet']
+        # Add all available deep learning methods that support the modality (priority order)
+        if modality_type == 'pet-mri':
+            dl_priority = ['fatfusion']  # FATFusion is best for PET-MRI
+        else:  # ct-mri
+            dl_priority = ['wavelet_option2', 'wavelet_option1', 'resnet', 'fatfusion']
+        
         for method in dl_priority:
-            if method in self.fusion_methods and self.fusion_methods[method].is_available:
+            if (method in self.fusion_methods and 
+                self.fusion_methods[method].is_available and
+                modality_type in getattr(self.fusion_methods[method], 'supported_modalities', ['ct-mri'])):
                 recommended.append(method)
         
         # Add DWT-PCA method (implemented in parent directory)
-        if 'dwt_pca' in self.fusion_methods and self.fusion_methods['dwt_pca'].is_available:
+        if ('dwt_pca' in self.fusion_methods and 
+            self.fusion_methods['dwt_pca'].is_available and
+            modality_type in getattr(self.fusion_methods['dwt_pca'], 'supported_modalities', ['ct-mri'])):
             recommended.append('dwt_pca')
         
         return recommended

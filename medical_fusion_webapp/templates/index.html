@@ -233,37 +233,63 @@
             <!-- Header -->
             <div class="header">
                 <h1><i class="fas fa-microscope"></i> Medical Image Fusion Comparison Tool</h1>
-                <p>Compare different fusion methods for CT and MRI medical images</p>
+                <p>Compare different fusion methods for CT-MRI and PET-MRI medical images</p>
             </div>
             
             <!-- Upload Section -->
             <div class="upload-section">
                 <h3 class="text-center mb-4"><i class="fas fa-upload"></i> Upload Medical Images</h3>
                 
+                <!-- Modality Selection -->
+                <div class="row mb-4">
+                    <div class="col-md-8 mx-auto">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title"><i class="fas fa-cogs"></i> Fusion Configuration</h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Fusion Type:</label>
+                                        <select id="fusion-type" class="form-select">
+                                            <option value="ct-mri">CT-MRI Fusion</option>
+                                            <option value="pet-mri">PET-MRI Fusion</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6 text-center">
+                                        <label class="form-label">Image Order:</label>
+                                        <button id="swap-images" class="btn btn-outline-secondary btn-sm" type="button">
+                                            <i class="fas fa-exchange-alt"></i> Swap Images
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="row">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label"><strong>CT Image</strong></label>
+                            <label class="form-label"><strong id="image1-label">CT Image</strong></label>
                             <div class="file-input-wrapper">
-                                <input type="file" id="ct-input" class="file-input" accept="image/*">
-                                <label for="ct-input" class="file-input-label">
+                                <input type="file" id="image1-input" class="file-input" accept="image/*">
+                                <label for="image1-input" class="file-input-label" id="image1-input-label">
                                     <i class="fas fa-file-medical"></i> Choose CT Image
                                 </label>
                             </div>
-                            <div id="ct-preview" class="preview-container"></div>
+                            <div id="image1-preview" class="preview-container"></div>
                         </div>
                     </div>
                     
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label class="form-label"><strong>MRI Image</strong></label>
+                            <label class="form-label"><strong id="image2-label">MRI Image</strong></label>
                             <div class="file-input-wrapper">
-                                <input type="file" id="mri-input" class="file-input" accept="image/*">
-                                <label for="mri-input" class="file-input-label">
+                                <input type="file" id="image2-input" class="file-input" accept="image/*">
+                                <label for="image2-input" class="file-input-label" id="image2-input-label">
                                     <i class="fas fa-brain"></i> Choose MRI Image
                                 </label>
                             </div>
-                            <div id="mri-preview" class="preview-container"></div>
+                            <div id="image2-preview" class="preview-container"></div>
                         </div>
                     </div>
                 </div>
@@ -296,12 +322,12 @@
                     <h4><i class="fas fa-images"></i> Original Images</h4>
                     <div class="row text-center">
                         <div class="col-md-6">
-                            <h6>CT Image</h6>
-                            <img id="original-ct" class="fusion-image" alt="Original CT">
+                            <h6 id="original-image1-title">CT Image</h6>
+                            <img id="original-image1" class="fusion-image" alt="Original Image 1">
                         </div>
                         <div class="col-md-6">
-                            <h6>MRI Image</h6>
-                            <img id="original-mri" class="fusion-image" alt="Original MRI">
+                            <h6 id="original-image2-title">MRI Image</h6>
+                            <img id="original-image2" class="fusion-image" alt="Original Image 2">
                         </div>
                     </div>
                 </div>
@@ -322,25 +348,94 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Global variables
-        let ctImage = null;
-        let mriImage = null;
+        let image1 = null;
+        let image2 = null;
+        let fusionType = 'ct-mri';
+        let imageLabels = {
+            'ct-mri': { image1: 'CT', image2: 'MRI' },
+            'pet-mri': { image1: 'PET', image2: 'MRI' }
+        };
         
-        // File input handlers
-        document.getElementById('ct-input').addEventListener('change', function(e) {
-            handleFileSelect(e, 'ct');
+        // Initialize event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            updateImageLabels();
+            
+            // File input handlers
+            document.getElementById('image1-input').addEventListener('change', function(e) {
+                handleFileSelect(e, 'image1');
+            });
+            
+            document.getElementById('image2-input').addEventListener('change', function(e) {
+                handleFileSelect(e, 'image2');
+            });
+            
+            // Fusion type change handler
+            document.getElementById('fusion-type').addEventListener('change', function(e) {
+                fusionType = e.target.value;
+                updateImageLabels();
+                clearImages();
+            });
+            
+            // Swap images handler
+            document.getElementById('swap-images').addEventListener('click', swapImages);
+            
+            // Process button handler
+            document.getElementById('process-btn').addEventListener('click', processImages);
+            
+            // Sample button handler
+            document.getElementById('sample-btn').addEventListener('click', loadSample);
         });
         
-        document.getElementById('mri-input').addEventListener('change', function(e) {
-            handleFileSelect(e, 'mri');
-        });
+        function updateImageLabels() {
+            const labels = imageLabels[fusionType];
+            document.getElementById('image1-label').textContent = `${labels.image1} Image`;
+            document.getElementById('image2-label').textContent = `${labels.image2} Image`;
+            
+            const icons = {
+                'CT': 'fas fa-file-medical',
+                'PET': 'fas fa-radiation',
+                'MRI': 'fas fa-brain'
+            };
+            
+            document.getElementById('image1-input-label').innerHTML = 
+                `<i class="${icons[labels.image1]}"></i> Choose ${labels.image1} Image`;
+            document.getElementById('image2-input-label').innerHTML = 
+                `<i class="${icons[labels.image2]}"></i> Choose ${labels.image2} Image`;
+                
+            document.getElementById('original-image1-title').textContent = `${labels.image1} Image`;
+            document.getElementById('original-image2-title').textContent = `${labels.image2} Image`;
+        }
         
-        // Process button handler
-        document.getElementById('process-btn').addEventListener('click', processImages);
+        function clearImages() {
+            image1 = null;
+            image2 = null;
+            document.getElementById('image1-preview').innerHTML = '';
+            document.getElementById('image2-preview').innerHTML = '';
+            document.getElementById('image1-input').value = '';
+            document.getElementById('image2-input').value = '';
+            updateProcessButton();
+        }
         
-        // Sample button handler
-        document.getElementById('sample-btn').addEventListener('click', loadSample);
+        function swapImages() {
+            // Swap the files
+            const temp = image1;
+            image1 = image2;
+            image2 = temp;
+            
+            // Swap the preview images
+            const preview1 = document.getElementById('image1-preview').innerHTML;
+            const preview2 = document.getElementById('image2-preview').innerHTML;
+            document.getElementById('image1-preview').innerHTML = preview2;
+            document.getElementById('image2-preview').innerHTML = preview1;
+            
+            // Swap file inputs (clear them since we can't programmatically set file inputs)
+            document.getElementById('image1-input').value = '';
+            document.getElementById('image2-input').value = '';
+            
+            updateProcessButton();
+        }
         
-        function handleFileSelect(event, type) {
+        function handleFileSelect(event, imageType) {
             const file = event.target.files[0];
             if (!file) return;
             
@@ -349,16 +444,16 @@
                 const img = document.createElement('img');
                 img.src = e.target.result;
                 img.className = 'preview-image';
-                img.alt = `${type.toUpperCase()} Preview`;
+                img.alt = `${imageType} Preview`;
                 
-                const previewContainer = document.getElementById(`${type}-preview`);
+                const previewContainer = document.getElementById(`${imageType}-preview`);
                 previewContainer.innerHTML = '';
                 previewContainer.appendChild(img);
                 
-                if (type === 'ct') {
-                    ctImage = file;
+                if (imageType === 'image1') {
+                    image1 = file;
                 } else {
-                    mriImage = file;
+                    image2 = file;
                 }
                 
                 updateProcessButton();
@@ -368,7 +463,7 @@
         
         function updateProcessButton() {
             const processBtn = document.getElementById('process-btn');
-            processBtn.disabled = !(ctImage && mriImage);
+            processBtn.disabled = !(image1 && image2);
         }
         
         function showLoading() {
@@ -388,16 +483,18 @@
         }
         
         function processImages() {
-            if (!ctImage || !mriImage) {
-                showError('Please select both CT and MRI images');
+            if (!image1 || !image2) {
+                const labels = imageLabels[fusionType];
+                showError(`Please select both ${labels.image1} and ${labels.image2} images`);
                 return;
             }
             
             showLoading();
             
             const formData = new FormData();
-            formData.append('ct_image', ctImage);
-            formData.append('mri_image', mriImage);
+            formData.append('image1', image1);
+            formData.append('image2', image2);
+            formData.append('fusion_type', fusionType);
             
             fetch('/upload', {
                 method: 'POST',
@@ -421,7 +518,7 @@
         function loadSample() {
             showLoading();
             
-            fetch('/sample')
+            fetch(`/sample?type=${fusionType}`)
             .then(response => response.json())
             .then(data => {
                 hideLoading();
@@ -429,24 +526,26 @@
                     showError(data.error);
                 } else {
                     // Display sample images in preview
-                    const ctPreview = document.getElementById('ct-preview');
-                    const mriPreview = document.getElementById('mri-preview');
+                    const image1Preview = document.getElementById('image1-preview');
+                    const image2Preview = document.getElementById('image2-preview');
                     
-                    ctPreview.innerHTML = `<img src="${data.ct_image}" class="preview-image" alt="Sample CT">`;
-                    mriPreview.innerHTML = `<img src="${data.mri_image}" class="preview-image" alt="Sample MRI">`;
+                    image1Preview.innerHTML = `<img src="${data.image1}" class="preview-image" alt="Sample Image 1">`;
+                    image2Preview.innerHTML = `<img src="${data.image2}" class="preview-image" alt="Sample Image 2">`;
                     
                     // Convert base64 to file objects for processing
-                    fetch(data.ct_image)
+                    fetch(data.image1)
                         .then(res => res.blob())
                         .then(blob => {
-                            ctImage = new File([blob], 'sample_ct.png', { type: 'image/png' });
+                            const labels = imageLabels[fusionType];
+                            image1 = new File([blob], `sample_${labels.image1.toLowerCase()}.png`, { type: 'image/png' });
                             updateProcessButton();
                         });
                     
-                    fetch(data.mri_image)
+                    fetch(data.image2)
                         .then(res => res.blob())
                         .then(blob => {
-                            mriImage = new File([blob], 'sample_mri.png', { type: 'image/png' });
+                            const labels = imageLabels[fusionType];
+                            image2 = new File([blob], `sample_${labels.image2.toLowerCase()}.png`, { type: 'image/png' });
                             updateProcessButton();
                         });
                     
@@ -468,8 +567,8 @@
         
         function displayResults(data) {
             // Show original images
-            document.getElementById('original-ct').src = data.ct_image;
-            document.getElementById('original-mri').src = data.mri_image;
+            document.getElementById('original-image1').src = data.image1;
+            document.getElementById('original-image2').src = data.image2;
             
             // Show comparison plot if available
             if (data.comparison_plot) {
@@ -492,8 +591,9 @@
             const methodIcons = {
                 'ResNet Deep Fusion': 'fas fa-brain',
                 'Wavelet Fusion': 'fas fa-wave-square',
-                'Spatial-Adaptive Wavelet': 'fas fa-project-diagram',
-                'DWT-PCA Fusion': 'fas fa-sitemap'
+                'Spatial-Adaptive Wavelet (Option 2)': 'fas fa-project-diagram',
+                'DWT-PCA Fusion': 'fas fa-sitemap',
+                'FATFusion Transformer': 'fas fa-robot'
             };
             
             // Sort methods: available first, then unavailable

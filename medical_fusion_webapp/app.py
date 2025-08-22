@@ -137,24 +137,25 @@ def upload_files():
     """Handle file upload and fusion."""
     try:
         # Check if files were uploaded
-        if 'ct_image' not in request.files or 'mri_image' not in request.files:
-            return jsonify({'error': 'Please upload both CT and MRI images'}), 400
+        if 'image1' not in request.files or 'image2' not in request.files:
+            return jsonify({'error': 'Please upload both images'}), 400
         
-        ct_file = request.files['ct_image']
-        mri_file = request.files['mri_image']
+        image1_file = request.files['image1']
+        image2_file = request.files['image2']
+        fusion_type = request.form.get('fusion_type', 'ct-mri')
         
-        if ct_file.filename == '' or mri_file.filename == '':
-            return jsonify({'error': 'Please select both CT and MRI images'}), 400
+        if image1_file.filename == '' or image2_file.filename == '':
+            return jsonify({'error': 'Please select both images'}), 400
         
         # Preprocess images
-        ct_img = preprocess_image(ct_file)
-        mri_img = preprocess_image(mri_file)
+        image1_img = preprocess_image(image1_file)
+        image2_img = preprocess_image(image2_file)
         
-        # Get recommended fusion methods (now includes all deep learning methods)
-        recommended_methods = fusion_manager.get_recommended_methods()
+        # Get recommended fusion methods based on modality type
+        recommended_methods = fusion_manager.get_recommended_methods(fusion_type)
         
         # Perform fusion using all recommended methods
-        fusion_results = fusion_manager.fuse_images(ct_img, mri_img, recommended_methods)
+        fusion_results = fusion_manager.fuse_images(image1_img, image2_img, recommended_methods)
         
         # Prepare results for web response
         web_results = {}
@@ -182,12 +183,21 @@ def upload_files():
         # Create comparison plot
         plot_path = create_comparison_plot(fusion_results)
         
+        # Get image labels based on fusion type
+        labels = {
+            'ct-mri': {'image1': 'CT', 'image2': 'MRI'},
+            'pet-mri': {'image1': 'PET', 'image2': 'MRI'}
+        }
+        current_labels = labels.get(fusion_type, labels['ct-mri'])
+        
         # Prepare response
         response_data = {
-            'ct_image': array_to_base64(ct_img),
-            'mri_image': array_to_base64(mri_img),
+            'image1': array_to_base64(image1_img),
+            'image2': array_to_base64(image2_img),
             'results': web_results,
             'comparison_plot': plot_path,
+            'fusion_type': fusion_type,
+            'labels': current_labels,
             'method_info': {
                 'total_methods': len(fusion_results),
                 'available_methods': len([r for r in fusion_results.values() if r['fused_image'] is not None])
@@ -203,53 +213,67 @@ def upload_files():
 def load_sample():
     """Load sample images for testing."""
     try:
-        # Look for sample images in the dataset
-        sample_paths = [
-            '../Harvard-Medical-Image-Fusion-Datasets/CT-MRI/CT',
-            '../Harvard-Medical-Image-Fusion-Datasets/MyDatasets/CT-MRI/test/CT'
-        ]
+        fusion_type = request.args.get('type', 'ct-mri')
         
-        ct_path = None
-        mri_path = None
+        # Look for sample images based on fusion type
+        if fusion_type == 'pet-mri':
+            sample_paths = [
+                '../Harvard-Medical-Image-Fusion-Datasets/PET-MRI/PET',
+                '../Harvard-Medical-Image-Fusion-Datasets/MyDatasets/PET-MRI/test/PET',
+                '../FATFusion/Harvard-Medical-Image-Fusion-Datasets/PET-MRI/PET'
+            ]
+        else:  # ct-mri
+            sample_paths = [
+                '../Harvard-Medical-Image-Fusion-Datasets/CT-MRI/CT',
+                '../Harvard-Medical-Image-Fusion-Datasets/MyDatasets/CT-MRI/test/CT'
+            ]
+        
+        image1_path = None
+        image2_path = None
         
         for base_path in sample_paths:
             if os.path.exists(base_path):
-                ct_files = [f for f in os.listdir(base_path) if f.endswith('.png')]
+                image1_files = [f for f in os.listdir(base_path) if f.endswith('.png')]
                 
                 # Find a valid image pair
-                for sample_file in ct_files:
-                    ct_candidate = os.path.join(base_path, sample_file)
-                    mri_base = base_path.replace('/CT', '/MRI')
-                    mri_candidate = os.path.join(mri_base, sample_file)
+                for sample_file in image1_files:
+                    image1_candidate = os.path.join(base_path, sample_file)
                     
-                    if os.path.exists(mri_candidate):
+                    if fusion_type == 'pet-mri':
+                        image2_base = base_path.replace('/PET', '/MRI')
+                    else:
+                        image2_base = base_path.replace('/CT', '/MRI')
+                        
+                    image2_candidate = os.path.join(image2_base, sample_file)
+                    
+                    if os.path.exists(image2_candidate):
                         # Test if images can be loaded and are not empty
                         try:
-                            ct_test = load_image_from_path(ct_candidate, (256, 256))
-                            mri_test = load_image_from_path(mri_candidate, (256, 256))
+                            image1_test = load_image_from_path(image1_candidate, (256, 256))
+                            image2_test = load_image_from_path(image2_candidate, (256, 256))
                             
-                            if ct_test.size > 0 and mri_test.size > 0:
-                                ct_path = ct_candidate
-                                mri_path = mri_candidate
+                            if image1_test.size > 0 and image2_test.size > 0:
+                                image1_path = image1_candidate
+                                image2_path = image2_candidate
                                 break
                         except:
                             continue
                 
-                if ct_path and mri_path:
+                if image1_path and image2_path:
                     break
         
-        if ct_path and mri_path:
+        if image1_path and image2_path:
             # Load sample images
-            ct_img = load_image_from_path(ct_path, (256, 256))
-            mri_img = load_image_from_path(mri_path, (256, 256))
+            image1_img = load_image_from_path(image1_path, (256, 256))
+            image2_img = load_image_from_path(image2_path, (256, 256))
             
             return jsonify({
-                'ct_image': array_to_base64(ct_img),
-                'mri_image': array_to_base64(mri_img),
-                'message': f'Loaded sample: {os.path.basename(ct_path)}'
+                'image1': array_to_base64(image1_img),
+                'image2': array_to_base64(image2_img),
+                'message': f'Loaded {fusion_type.upper()} sample: {os.path.basename(image1_path)}'
             })
         else:
-            return jsonify({'error': 'No valid sample images found'}), 404
+            return jsonify({'error': f'No valid {fusion_type.upper()} sample images found'}), 404
             
     except Exception as e:
         return jsonify({'error': f'Failed to load sample: {str(e)}'}), 500
