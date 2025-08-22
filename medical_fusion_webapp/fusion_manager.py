@@ -11,7 +11,7 @@ from typing import Dict, List, Any, Optional
 import numpy as np
 
 from fusion_methods.base import FusionMethod
-from fusion_methods.deep_learning import ResNetFusion, WaveletFusion, SpatialWaveletFusion, FATFusion
+from fusion_methods.deep_learning import ResNetFusion, WaveletFusion, SpatialWaveletFusion, FATFusion, MATRFusion
 from fusion_methods.traditional import DWTPCAFusion
 from utils.metrics import evaluate_fusion_comprehensive
 from utils.image_processing import validate_image_pair
@@ -53,6 +53,12 @@ class FusionManager:
                 'path': '../FATFusion/FATFusion-model.pth',
                 'key': 'fatfusion',
                 'modalities': ['pet-mri', 'ct-mri']  # FATFusion supports both
+            },
+            {
+                'class': MATRFusion,
+                'path': '../MATR-main/models/model_10.pth',
+                'key': 'matr',
+                'modalities': ['pet-mri']  # MATR is specifically for PET-MRI
             }
         ]
         
@@ -196,7 +202,7 @@ class FusionManager:
         
         # Add all available deep learning methods that support the modality (priority order)
         if modality_type == 'pet-mri':
-            dl_priority = ['fatfusion']  # FATFusion is best for PET-MRI
+            dl_priority = ['matr', 'fatfusion']  # MATR and FATFusion are best for PET-MRI
         else:  # ct-mri
             dl_priority = ['wavelet_option2', 'wavelet_option1', 'resnet', 'fatfusion']
         

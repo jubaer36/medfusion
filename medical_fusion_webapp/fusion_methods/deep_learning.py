@@ -24,6 +24,15 @@ try:
 except ImportError:
     FATFUSION_AVAILABLE = False
 
+# Add MATR path to import
+sys.path.append(os.path.join(os.path.dirname(__file__), '../../MATR-main'))
+
+try:
+    from Networks.net import MODEL as MATRModel
+    MATR_AVAILABLE = True
+except ImportError:
+    MATR_AVAILABLE = False
+
 
 class ResNetFusion(ModelBasedFusion):
     """ResNet-based deep learning fusion method."""
@@ -164,4 +173,52 @@ class FATFusion(ModelBasedFusion):
                 return np.clip(self.tensor_to_numpy(fused_tensor), 0, 1)
         except Exception as e:
             print(f"FATFusion error: {e}")
+            return None
+
+
+class MATRFusion(ModelBasedFusion):
+    """MATR: Multimodal Medical Image Fusion via Multiscale Adaptive Transformer."""
+    
+    def __init__(self, model_path: str, device: torch.device):
+        super().__init__(
+            name="MATR Transformer",
+            description="Multimodal Medical Image Fusion via Multiscale Adaptive Transformer for PET-MRI fusion",
+            model_path=model_path,
+            device=device
+        )
+        
+        # Check if MATR is available
+        if not MATR_AVAILABLE:
+            self.is_available = False
+            self.error_message = "MATR networks not available"
+    
+    def create_model(self):
+        """Create MATR model."""
+        return MATRModel(in_channel=2)  # MATR takes 2-channel input (concatenated images)
+    
+    def prepare_input(self, image1: np.ndarray, image2: np.ndarray) -> torch.Tensor:
+        """Prepare concatenated input for MATR model."""
+        # Convert to tensors
+        image1_tensor = torch.from_numpy(image1).float().unsqueeze(0).unsqueeze(0)  # [1, 1, H, W]
+        image2_tensor = torch.from_numpy(image2).float().unsqueeze(0).unsqueeze(0)  # [1, 1, H, W]
+        
+        # Concatenate along channel dimension
+        input_tensor = torch.cat([image1_tensor, image2_tensor], dim=1)  # [1, 2, H, W]
+        return input_tensor.to(self.device)
+    
+    def fuse(self, image1: np.ndarray, image2: np.ndarray) -> Optional[np.ndarray]:
+        """Fuse images using MATR model."""
+        if not self.is_available:
+            return None
+        
+        try:
+            with torch.no_grad():
+                # Prepare concatenated input tensor
+                input_tensor = self.prepare_input(image1, image2)
+                
+                # MATR takes concatenated input
+                fused_tensor = self.model(input_tensor)
+                return np.clip(self.tensor_to_numpy(fused_tensor), 0, 1)
+        except Exception as e:
+            print(f"MATR fusion error: {e}")
             return None

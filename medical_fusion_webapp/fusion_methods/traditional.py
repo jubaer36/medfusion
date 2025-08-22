@@ -236,14 +236,25 @@ class DWTPCAFusion(TraditionalFusion):
                     pca_result = pca.fit_transform(data)
                     eigenvals = pca.explained_variance_
                     
-                    if len(eigenvals) >= 2:
-                        w1 = eigenvals[0] / (eigenvals[0] + eigenvals[1])
-                        w2 = eigenvals[1] / (eigenvals[0] + eigenvals[1])
+                    # Check for valid eigenvalues and avoid division by zero
+                    if len(eigenvals) >= 2 and eigenvals[0] + eigenvals[1] > 1e-10:
+                        total_var = eigenvals[0] + eigenvals[1]
+                        w1 = eigenvals[0] / total_var
+                        w2 = eigenvals[1] / total_var
+                        
+                        # Ensure weights are valid numbers
+                        if np.isnan(w1) or np.isnan(w2) or np.isinf(w1) or np.isinf(w2):
+                            w1, w2 = 0.5, 0.5
                     else:
                         w1, w2 = 0.5, 0.5
                     
                     fused_block = w1 * block1 + w2 * block2
-                except:
+                    
+                    # Final safety check for the fused block
+                    if np.any(np.isnan(fused_block)) or np.any(np.isinf(fused_block)):
+                        fused_block = 0.5 * (block1 + block2)
+                        
+                except Exception as e:
                     fused_block = 0.5 * (block1 + block2)
                 
                 fused_coeffs[i:i+block_size, j:j+block_size] = fused_block
@@ -329,18 +340,24 @@ class DWTPCAFusion(TraditionalFusion):
             # Ensure all level 1 coefficients have the same size
             target_h, target_w = fused_cH1.shape
             if reconstructed_cA1.shape != (target_h, target_w):
-                reconstructed_cA1 = cv2.resize(reconstructed_cA1, (target_w, target_h))
+                # Use interpolation that preserves valid values
+                reconstructed_cA1 = cv2.resize(reconstructed_cA1, (target_w, target_h), interpolation=cv2.INTER_LINEAR)
+                
+                # Check and fix any NaN/inf values that might arise from resizing
+                if np.any(np.isnan(reconstructed_cA1)) or np.any(np.isinf(reconstructed_cA1)):
+                    # Fallback to simple resizing without interpolation issues
+                    from scipy import ndimage
+                    zoom_h = target_h / reconstructed_cA1.shape[0]
+                    zoom_w = target_w / reconstructed_cA1.shape[1]
+                    reconstructed_cA1 = ndimage.zoom(reconstructed_cA1, (zoom_h, zoom_w), order=1)
             
             # Reconstruct final image
             coeffs_level1 = (reconstructed_cA1, (fused_cH1, fused_cV1, fused_cD1))
             fused_image = pywt.idwt2(coeffs_level1, self.wavelet, mode=self.mode)
-            fused_image = np.clip(fused_image, 0, 1)
             
-            # Check for NaN or inf values
-            if np.any(np.isnan(fused_image)) or np.any(np.isinf(fused_image)):
-                print("Warning: Fused image contains NaN or inf values. Using simple averaging fallback.")
-                fused_image = 0.5 * (mri + ct)
-                fused_image = np.clip(fused_image, 0, 1)
+            # Ensure the output is clean before clipping
+            fused_image = np.nan_to_num(fused_image, nan=0.5, posinf=1.0, neginf=0.0)
+            fused_image = np.clip(fused_image, 0, 1)
             
             return fused_image
             
