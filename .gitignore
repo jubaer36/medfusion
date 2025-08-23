@@ -11,6 +11,7 @@ __pycache__/
 .ipynb_checkpoints/
 
 # Large model checkpoints (keep smaller ones)
+checkpoints/**
 checkpoints_*/
 !checkpoints_*/*.png
 !checkpoints_*/training_history.pt
