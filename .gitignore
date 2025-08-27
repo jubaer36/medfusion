@@ -17,6 +17,8 @@ checkpoints_*/
 !checkpoints_*/training_history.pt
 checkpoints_enhanced/**
 checkpoints_wavelet/**
+novel-approach/LLVIP/** 
+runs/**
 
 # But allow some smaller checkpoint files
 !checkpoints_enhanced/wavelet_fusion_spatial_best.pt
