@@ -18,12 +18,17 @@ checkpoints_*/
 checkpoints_enhanced/**
 checkpoints_wavelet/**
 novel-approach/LLVIP/** 
+novel-approach/results/** 
+novel-approach/fusion_model_fixed.pth
+novel-approach/medical_fusion_finetuned.pth
 runs/**
+
 
 # But allow some smaller checkpoint files
 !checkpoints_enhanced/wavelet_fusion_spatial_best.pt
 !checkpoints_enhanced/wavelet_fusion_spatial_epoch_*.pt
 !checkpoints_wavelet/wavelet_fusion_best.pt
+
 
 # Test and debug files
 test_*.py
