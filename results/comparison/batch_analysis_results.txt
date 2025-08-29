@@ -1,7 +1,7 @@
 BATCH COMPARATIVE FUSION ANALYSIS RESULTS
 ==================================================
 
-IMAGE PAIR: 45085.png
+IMAGE PAIR: 28015.png
 ----------------------------------------
 DDCGAN:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
@@ -10,13 +10,15 @@ ResNet_Attention:
 ResNet_Fusion:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 Wavelet_DL:
+.4f.4f.4f.2f.2f.2f.4f.4f.4f
+MATR:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 DWT-PCA:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 Wavelet-Trad:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 
-IMAGE PAIR: 45242.png
+IMAGE PAIR: 45148.png
 ----------------------------------------
 DDCGAN:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
@@ -25,13 +27,15 @@ ResNet_Attention:
 ResNet_Fusion:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 Wavelet_DL:
+.4f.4f.4f.2f.2f.2f.4f.4f.4f
+MATR:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 DWT-PCA:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 Wavelet-Trad:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 
-IMAGE PAIR: 45222.png
+IMAGE PAIR: 45163.png
 ----------------------------------------
 DDCGAN:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
@@ -40,13 +44,15 @@ ResNet_Attention:
 ResNet_Fusion:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 Wavelet_DL:
+.4f.4f.4f.2f.2f.2f.4f.4f.4f
+MATR:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 DWT-PCA:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 Wavelet-Trad:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 
-IMAGE PAIR: 45245.png
+IMAGE PAIR: 21019.png
 ----------------------------------------
 DDCGAN:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
@@ -55,13 +61,15 @@ ResNet_Attention:
 ResNet_Fusion:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 Wavelet_DL:
+.4f.4f.4f.2f.2f.2f.4f.4f.4f
+MATR:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 DWT-PCA:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 Wavelet-Trad:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 
-IMAGE PAIR: 45358.png
+IMAGE PAIR: 45116.png
 ----------------------------------------
 DDCGAN:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
@@ -70,6 +78,8 @@ ResNet_Attention:
 ResNet_Fusion:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 Wavelet_DL:
+.4f.4f.4f.2f.2f.2f.4f.4f.4f
+MATR:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 DWT-PCA:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f

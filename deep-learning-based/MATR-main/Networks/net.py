@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 
 from timm.models.layers import DropPath, to_2tuple, trunc_normal_
-from . import layers as L
+import layers as L
 
 def conv3x3(in_planes, out_planes, stride=1):
 
