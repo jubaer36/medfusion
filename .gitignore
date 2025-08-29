@@ -20,7 +20,9 @@ checkpoints_wavelet/**
 novel-approach/LLVIP/** 
 novel-approach/results/** 
 novel-approach/fusion_model_fixed.pth
+novel-approach/checkpoints/**
 novel-approach/medical_fusion_finetuned.pth
+novel-approach/final_models/**
 runs/**
 
 
