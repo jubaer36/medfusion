@@ -1,6 +1,15 @@
 # Large model files
 checkpoints_resnet/resnet_fusion_best.pt
 
+# All PyTorch model files (.pth)
+*.pth
+
+# LLVIP dataset (any location)
+**/LLVIP/**
+
+# FATFusion embedded repository
+deep-learning-based/FATFusion/
+
 # Python cache
 __pycache__/
 *.pyc
