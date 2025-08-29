@@ -1,1 +1,0 @@
-# Fusion methods for medical image fusion
