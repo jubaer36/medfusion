@@ -33,6 +33,7 @@ novel-approach/checkpoints/**
 novel-approach/medical_fusion_finetuned.pth
 novel-approach/final_models/**
 runs/**
+deep-learning-based/checkpoints/**
 
 
 # But allow some smaller checkpoint files
