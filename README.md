@@ -354,11 +354,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Research Papers**: MATR and FATFusion implementations
 - **Community**: Open-source computer vision and deep learning communities
 
-## 📞 Contact
-
-- **Author**: Jubaer Ahmed
-- **GitHub**: [@jubaer36](https://github.com/jubaer36)
-- **Repository**: [medfusion](https://github.com/jubaer36/medfusion)
 
 ---
 
