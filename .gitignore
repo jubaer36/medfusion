@@ -3,6 +3,7 @@ checkpoints_resnet/resnet_fusion_best.pt
 
 # All PyTorch model files (.pth)
 *.pth
+*.pt
 deep-learning-based/checkpoints/**
 # LLVIP dataset (any location)
 **/LLVIP/**
