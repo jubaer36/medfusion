@@ -53,15 +53,13 @@ Both methods expect the dataset to be organized as follows:
 
 ```
 Dataset/
-└── CT-MRI/
-    ├── CT/
-    │   ├── 16003.png
-    │   ├── 16004.png
-    │   └── ...
-    └── MRI/
-        ├── 16003.png
-        ├── 16004.png
-        └── ...
+├── train/CT/     # Training CT images
+├── train/MRI/    # Training MRI images
+├── val/CT/       # Validation CT images
+├── val/MRI/      # Validation MRI images
+├── test/CT/      # Test CT images
+├── test/MRI/     # Test MRI images
+└── split_info.json  # Dataset split metadata
 ```
 
 ## Usage Instructions
@@ -73,8 +71,10 @@ Dataset/
    ```python
    @dataclass
    class Config:
-       ct_dir: str = '../Dataset/CT-MRI/CT'
-       mri_dir: str = '../Dataset/CT-MRI/MRI'
+       ct_dir: str = '../Dataset/train/CT'
+       mri_dir: str = '../Dataset/train/MRI'
+       ct_val_dir: str = '../Dataset/val/CT'
+       mri_val_dir: str = '../Dataset/val/MRI'
        save_dir: str = 'results/resnet_fusion'
    ```
 3. Run all cells sequentially
@@ -85,7 +85,7 @@ Dataset/
 1. Open `trainable-wavelet-fusion.ipynb` in Jupyter notebook
 2. Update the dataset path:
    ```python
-   dataset = CTMRIDataset('../Dataset/CT-MRI/CT', '../Dataset/CT-MRI/MRI')
+   dataset = CTMRIDataset('../Dataset/train/CT', '../Dataset/train/MRI')
    ```
 3. Run all cells sequentially
 4. Model checkpoints and training history will be saved in `results/trainable_wavelet_fusion/`

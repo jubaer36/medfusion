@@ -1,7 +1,7 @@
 BATCH COMPARATIVE FUSION ANALYSIS RESULTS
 ==================================================
 
-IMAGE PAIR: 16008.png
+IMAGE PAIR: 21019.png
 ----------------------------------------
 DDCGAN:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
@@ -18,7 +18,7 @@ DWT-PCA:
 Wavelet-Trad:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 
-IMAGE PAIR: 45003.png
+IMAGE PAIR: 32021.png
 ----------------------------------------
 DDCGAN:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
@@ -35,7 +35,7 @@ DWT-PCA:
 Wavelet-Trad:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 
-IMAGE PAIR: 45339.png
+IMAGE PAIR: 45146.png
 ----------------------------------------
 DDCGAN:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
@@ -52,7 +52,7 @@ DWT-PCA:
 Wavelet-Trad:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 
-IMAGE PAIR: 41016.png
+IMAGE PAIR: 45386.png
 ----------------------------------------
 DDCGAN:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
@@ -69,7 +69,7 @@ DWT-PCA:
 Wavelet-Trad:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f
 
-IMAGE PAIR: 34014.png
+IMAGE PAIR: 45352.png
 ----------------------------------------
 DDCGAN:
 .4f.4f.4f.2f.2f.2f.4f.4f.4f

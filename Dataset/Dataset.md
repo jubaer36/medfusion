@@ -8,16 +8,20 @@ This dataset contains paired Computed Tomography (CT) and Magnetic Resonance Ima
 
 ```
 Dataset/
-└── CT-MRI/
-    ├── CT/
-    │   ├── 16003.png
-    │   ├── 16004.png
-    │   ├── ...
-    │   └── 45389.png
-    └── MRI/
-        ├── 16003.png
-        ├── 16004.png
-        ├── ...
+├── train/
+│   ├── CT/
+│   └── MRI/
+├── val/
+│   ├── CT/
+│   └── MRI/
+├── test/
+│   ├── CT/
+│   └── MRI/
+├── CT-MRI/  # Original dataset
+│   ├── CT/
+│   └── MRI/
+└── split_info.json  # Split metadata
+```
         └── 45389.png
 ```
 
@@ -85,8 +89,8 @@ from PIL import Image
 import numpy as np
 
 # Load paired images
-ct_path = "Dataset/CT-MRI/CT/16003.png"
-mri_path = "Dataset/CT-MRI/MRI/16003.png"
+ct_path = "Dataset/test/CT/16003.png"
+mri_path = "Dataset/test/MRI/16003.png"
 
 ct_image = np.array(Image.open(ct_path))
 mri_image = np.array(Image.open(mri_path))
