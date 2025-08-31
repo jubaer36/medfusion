@@ -1,0 +1,11 @@
+{
+  "total_samples": 58,
+  "mean_ssim": 0.9973697554764406,
+  "mean_psnr": 17.129650115966797,
+  "ssim_quality": "Excellent",
+  "psnr_quality": "Poor",
+  "best_sample": "00031.png",
+  "worst_sample": "00033.png",
+  "model_type": "DDcGAN Claude",
+  "discriminator_mode": "Single"
+}
