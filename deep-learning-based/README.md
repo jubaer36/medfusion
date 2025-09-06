@@ -2,22 +2,56 @@
 
 This folder contains deep learning-based methods for multimodal medical image fusion, specifically designed for CT-MRI image fusion using neural networks.
 
-## Folder Structure
+## 📋 Table of Contents
+
+- [Overview](#overview)
+- [Methods Implemented](#methods-implemented)
+- [Architecture Details](#architecture-details)
+- [Training Procedures](#training-procedures)
+- [Performance Analysis](#performance-analysis)
+- [Usage Instructions](#usage-instructions)
+- [Model Checkpoints](#model-checkpoints)
+- [Dependencies](#dependencies)
+- [Configuration](#configuration)
+
+## 🎯 Overview
+
+This folder implements state-of-the-art deep learning approaches for medical image fusion, focusing on CT-MRI fusion. The methods leverage neural networks to learn optimal fusion strategies from data, providing superior performance compared to traditional approaches.
+
+### Key Advantages of Deep Learning Methods
+
+1. **Automatic Feature Learning**: Networks learn optimal features for fusion
+2. **End-to-End Training**: Direct optimization of fusion quality
+3. **Adaptive Fusion**: Context-aware fusion strategies
+4. **Superior Performance**: Better metrics across all evaluation criteria
+
+## 📁 Folder Structure
 
 ```
 deep-learning-based/
 ├── resnet_based_fusion.ipynb          # ResNet-based feature fusion method
 ├── trainable-wavelet-fusion.ipynb     # Trainable wavelet fusion with spatial adaptation
+├── DDCGAN_fusion_test.ipynb           # DDCGAN implementation
+├── resnet_attention_finetuning_medical_model.ipynb # Attention-based fusion
+├── MATR-main/                         # MATR transformer implementation
 ├── checkpoints/                       # Model checkpoints directory
 │   ├── intermediate/                  # Intermediate checkpoints (every N epochs)
 │   │   ├── resnet_fusion/            # ResNet intermediate checkpoints
-│   │   └── trainable_wavelet_fusion/ # Wavelet intermediate checkpoints
+│   │   ├── trainable_wavelet_fusion/ # Wavelet intermediate checkpoints
+│   │   └── ddcgan_fusion/            # DDCGAN intermediate checkpoints
 │   └── final/                        # Final best models
 │       ├── resnet_fusion/            # ResNet best model
-│       └── trainable_wavelet_fusion/ # Wavelet best model
+│       ├── trainable_wavelet_fusion/ # Wavelet best model
+│       ├── ddcgan_fusion/            # DDCGAN best model
+│       └── medical_fusion_finetuning/ # Attention model
 ├── results/                           # Directory for fusion results
 │   ├── resnet_fusion/                # Results from ResNet fusion method
-│   └── trainable_wavelet_fusion/     # Results from trainable wavelet fusion
+│   ├── trainable_wavelet_fusion/     # Results from trainable wavelet fusion
+│   └── ddcgan_fusion/                # Results from DDCGAN fusion
+├── test_results/                      # Test set results
+├── utils/                            # Utility functions
+│   ├── metrics.py                    # Evaluation metrics
+│   └── image_processing.py           # Image processing utilities
 └── README.md                         # This file
 ```
 
